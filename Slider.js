@@ -203,7 +203,7 @@ var Slider = React.createClass({
   render() {
 
     var {positionOne, positionTwo} = this.state;
-    var {selectedStyle, unselectedStyle, sliderLength} = this.props;
+    var {selectedStyle, unselectedStyle, sliderLength, markerSize} = this.props;
     var twoMarkers = positionTwo;
 
     var trackOneLength = positionOne;
@@ -221,40 +221,48 @@ var Slider = React.createClass({
       borderRadius: borderRadius || 0
     };
 
+    var markerStyle = {
+      width: markerSize,
+      height: markerSize,
+    };
+
+    var trackStyle = {
+      marginTop: markerSize / 2,
+    };
+
     return (
       <View style={[styles.container, this.props.containerStyle]}>
-        <View style={[styles.fullTrack, {width:sliderLength}]}>
-          <View style={[this.props.trackStyle, styles.track, trackOneStyle, {width: trackOneLength}]} />
-          <View style={[this.props.trackStyle, styles.track, trackTwoStyle, {width: trackTwoLength}]}>
+        <View style={[styles.fullTrack, {width: sliderLength }]}>
+          <View style={[this.props.trackStyle, trackStyle, styles.track, trackOneStyle, { width: trackOneLength }]} />
+
+          <View
+            style={[styles.touch, touchStyle, { left: trackOneLength }]}
+            ref={component => this._markerOne = component}
+            {...this._panResponderOne.panHandlers}
+          >
+            <Marker
+              pressed={this.state.onePressed}
+              markerStyle={[markerStyle, this.props.markerStyle]}
+              pressedMarkerStyle={this.props.pressedMarkerStyle}
+            />
+          </View>
+
+          <View style={[this.props.trackStyle, trackStyle, styles.track, trackTwoStyle, { width: trackTwoLength }]} />
+
+          {twoMarkers && (positionOne !== this.props.sliderLength) && (
             <View
-              style={[styles.touch,touchStyle]}
-              ref={component => this._markerOne = component}
-              {...this._panResponderOne.panHandlers}
+              style={[styles.touch, touchStyle, { left: trackOneLength + trackTwoLength - markerSize }]}
+              ref={component => this._markerTwo = component}
+              {...this._panResponderTwo.panHandlers}
             >
               <Marker
-                pressed={this.state.onePressed}
-                markerStyle={this.props.markerStyle}
+                pressed={this.state.twoPressed}
+                markerStyle={[markerStyle, this.props.markerStyle]}
                 pressedMarkerStyle={this.props.pressedMarkerStyle}
               />
             </View>
-          </View>
-          {twoMarkers && (
-            <View style={[this.props.trackStyle, styles.track, trackThreeStyle, {width: trackThreeLength}]}>
-              {(positionOne !== this.props.sliderLength) && (
-                <View
-                  style={[styles.touch,touchStyle]}
-                  ref={component => this._markerTwo = component}
-                  {...this._panResponderTwo.panHandlers}
-                >
-                  <Marker
-                    pressed={this.state.twoPressed}
-                    markerStyle={this.props.markerStyle}
-                    pressedMarkerStyle={this.props.pressedMarkerStyle}
-                  />
-                </View>
-              )}
-            </View>
           )}
+          <View style={[this.props.trackStyle, trackStyle, styles.track, trackThreeStyle, { width: trackThreeLength }]} />
         </View>
       </View>
     );
@@ -263,20 +271,23 @@ var Slider = React.createClass({
 
 module.exports = Slider;
 
-
 var styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
+    flex: 1,
+    flexDirection: 'row',
+    position: 'relative',
   },
   fullTrack: {
+    flex: 1,
     flexDirection: 'row',
   },
-  track: {
-    justifyContent: 'center'
-  },
   touch: {
+    position: 'absolute',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'transparent'
+    backgroundColor: 'transparent',
+    top: 0,
+    zIndex: 1,
   }
 });
