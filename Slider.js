@@ -54,9 +54,9 @@ var Slider = React.createClass({
 
   getInitialState() {
     this.optionsArray = this.props.optionsArray || converter.createArray(this.props.min,this.props.max,this.props.step);
-    this.stepLength = this.props.sliderLength/this.optionsArray.length;
+    this.stepLength = (this.props.sliderLength - this.props.markerSize) / this.optionsArray.length;
 
-    var initialValues = this.props.values.map(value => converter.valueToPosition(value,this.optionsArray,this.props.sliderLength));
+    var initialValues = this.props.values.map(value => converter.valueToPosition(value,this.optionsArray,this.props.sliderLength - this.props.markerSize));
 
     return {
       pressedOne: true,
@@ -100,9 +100,9 @@ var Slider = React.createClass({
   set(config) {
     var { max, min, optionsArray, step, values } = config || this.props;
     this.optionsArray = optionsArray || converter.createArray(min, max, step);
-    this.stepLength = this.props.sliderLength/this.optionsArray.length;
+    this.stepLength = (this.props.sliderLength - this.props.markerSize) / this.optionsArray.length;
 
-    var initialValues = values.map(value => converter.valueToPosition(value,this.optionsArray,this.props.sliderLength));
+    var initialValues = values.map(value => converter.valueToPosition(value,this.optionsArray,this.props.sliderLength - this.props.markerSize ));
 
     this.setState({
       pressedOne: true,
@@ -159,9 +159,9 @@ var Slider = React.createClass({
   moveTwo(gestureState) {
     var unconfined  = gestureState.dx + this.state.pastTwo;
     var bottom      = this.state.positionOne + this.stepLength;
-    var top         = this.props.sliderLength;
+    var top         = this.props.sliderLength - this.props.markerSize;
     var confined    = unconfined < bottom ? bottom : (unconfined > top ? top : unconfined);
-    var value       = converter.positionToValue(this.state.positionTwo, this.optionsArray, this.props.sliderLength);
+    var value       = converter.positionToValue(this.state.positionTwo, this.optionsArray, this.props.sliderLength - this.props.markerSize);
     var slipDisplacement = this.props.touchDimensions.slipDisplacement;
 
     if (Math.abs(gestureState.dy) < slipDisplacement || !slipDisplacement) {
@@ -251,7 +251,7 @@ var Slider = React.createClass({
 
           {twoMarkers && (positionOne !== this.props.sliderLength) && (
             <View
-              style={[styles.touch, touchStyle, { left: trackOneLength + trackTwoLength - markerSize }]}
+              style={[styles.touch, touchStyle, { left: trackOneLength + trackTwoLength }]}
               ref={component => this._markerTwo = component}
               {...this._panResponderTwo.panHandlers}
             >
