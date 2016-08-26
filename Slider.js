@@ -9,7 +9,8 @@ var {
   StyleSheet,
   PanResponder,
   View,
-  TouchableHighlight
+  TouchableHighlight,
+  Platform,
 } = ReactNative;
 
 var converter = require('./converter.js');
@@ -54,9 +55,9 @@ var Slider = React.createClass({
 
   getInitialState() {
     this.optionsArray = this.props.optionsArray || converter.createArray(this.props.min,this.props.max,this.props.step);
-    this.stepLength = (this.props.sliderLength - this.props.markerSize) / this.optionsArray.length;
+    this.stepLength = (this.props.sliderLength) / this.optionsArray.length;
 
-    var initialValues = this.props.values.map(value => converter.valueToPosition(value,this.optionsArray,this.props.sliderLength - this.props.markerSize));
+    var initialValues = this.props.values.map(value => converter.valueToPosition(value,this.optionsArray,this.props.sliderLength));
 
     return {
       pressedOne: true,
@@ -100,9 +101,9 @@ var Slider = React.createClass({
   set(config) {
     var { max, min, optionsArray, step, values } = config || this.props;
     this.optionsArray = optionsArray || converter.createArray(min, max, step);
-    this.stepLength = (this.props.sliderLength - this.props.markerSize) / this.optionsArray.length;
+    this.stepLength = (this.props.sliderLength) / this.optionsArray.length;
 
-    var initialValues = values.map(value => converter.valueToPosition(value,this.optionsArray,this.props.sliderLength - this.props.markerSize ));
+    var initialValues = values.map(value => converter.valueToPosition(value,this.optionsArray,this.props.sliderLength));
 
     this.setState({
       pressedOne: true,
@@ -159,9 +160,9 @@ var Slider = React.createClass({
   moveTwo(gestureState) {
     var unconfined  = gestureState.dx + this.state.pastTwo;
     var bottom      = this.state.positionOne + this.stepLength;
-    var top         = this.props.sliderLength - this.props.markerSize;
+    var top         = this.props.sliderLength;
     var confined    = unconfined < bottom ? bottom : (unconfined > top ? top : unconfined);
-    var value       = converter.positionToValue(this.state.positionTwo, this.optionsArray, this.props.sliderLength - this.props.markerSize);
+    var value       = converter.positionToValue(this.state.positionTwo, this.optionsArray, this.props.sliderLength);
     var slipDisplacement = this.props.touchDimensions.slipDisplacement;
 
     if (Math.abs(gestureState.dy) < slipDisplacement || !slipDisplacement) {
@@ -203,7 +204,7 @@ var Slider = React.createClass({
   render() {
 
     var {positionOne, positionTwo} = this.state;
-    var {selectedStyle, unselectedStyle, sliderLength, markerSize} = this.props;
+    var {selectedStyle, unselectedStyle, sliderLength} = this.props;
     var twoMarkers = positionTwo;
 
     var trackOneLength = positionOne;
@@ -218,17 +219,16 @@ var Slider = React.createClass({
       height: height,
       width: width,
       left: -width/2,
-      borderRadius: borderRadius || 0
-    };
-
-    var markerStyle = {
-      width: markerSize,
-      height: markerSize,
+      borderRadius: borderRadius || 0,
     };
 
     var trackStyle = {
-      marginTop: markerSize / 2,
+      marginTop: height / 2,
     };
+
+    var touchOffset = Platform.OS === 'android'
+      ? width / 2
+      : 0;
 
     return (
       <View style={[styles.container, this.props.containerStyle]}>
@@ -236,13 +236,13 @@ var Slider = React.createClass({
           <View style={[this.props.trackStyle, trackStyle, styles.track, trackOneStyle, { width: trackOneLength }]} />
 
           <View
-            style={[styles.touch, touchStyle, { left: trackOneLength }]}
+            style={[styles.touch, touchStyle, { left: trackOneLength - touchOffset }]}
             ref={component => this._markerOne = component}
             {...this._panResponderOne.panHandlers}
           >
             <Marker
               pressed={this.state.onePressed}
-              markerStyle={[markerStyle, this.props.markerStyle]}
+              markerStyle={this.props.markerStyle}
               pressedMarkerStyle={this.props.pressedMarkerStyle}
             />
           </View>
@@ -251,13 +251,13 @@ var Slider = React.createClass({
 
           {twoMarkers && (positionOne !== this.props.sliderLength) && (
             <View
-              style={[styles.touch, touchStyle, { left: trackOneLength + trackTwoLength }]}
+              style={[styles.touch, touchStyle, { left: trackOneLength + trackTwoLength - width + touchOffset }]}
               ref={component => this._markerTwo = component}
               {...this._panResponderTwo.panHandlers}
             >
               <Marker
                 pressed={this.state.twoPressed}
-                markerStyle={[markerStyle, this.props.markerStyle]}
+                markerStyle={this.props.markerStyle}
                 pressedMarkerStyle={this.props.pressedMarkerStyle}
               />
             </View>
